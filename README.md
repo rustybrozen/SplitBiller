@@ -15,7 +15,7 @@ SplitBiller is a minimalist and aesthetic expense sharing application built with
 
 ### Financial Logic
 * **Debt Calculation:** Automatically calculates net balances and generates an optimized transfer list to settle all debts.
-* **Smart Rounding:** Configurable rounding logic to handle currency denominations (e.g., Smart Auto-rounding, Fixed 1,000 VND, or Exact amounts).
+* **Smart Rounding:** Configurable rounding logic to handle currency denominations (e.g., Smart Auto-rounding, or Exact amounts).
 * **Remaining Budget Calculation:** Real-time calculation of remaining unallocated amounts during itemized splitting.
 
 ### User Interface & Experience
