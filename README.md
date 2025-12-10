@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SplitBiller
 
-## Getting Started
+## Overview
 
-First, run the development server:
+SplitBiller is a minimalist and aesthetic expense sharing application built with Next.js. It is designed to simplify the process of splitting bills among groups of people, handling both simple equal splits and complex itemized splits. The application features a robust algorithm to calculate the minimum number of transfers required to settle debts efficiently.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Expense Management
+* **Member Management:** Add and manage group members easily.
+* **Bill Tracking:** Create, edit, and delete bills with detailed descriptions and timestamps.
+* **Flexible Splitting:**
+    * **Equal Split:** Automatically divides the total amount among selected members.
+    * **Advanced Split:** Allows splitting by specific items and assigning them to specific members.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Financial Logic
+* **Debt Calculation:** Automatically calculates net balances and generates an optimized transfer list to settle all debts.
+* **Smart Rounding:** Configurable rounding logic to handle currency denominations (e.g., Smart Auto-rounding, Fixed 1,000 VND, or Exact amounts).
+* **Remaining Budget Calculation:** Real-time calculation of remaining unallocated amounts during itemized splitting.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### User Interface & Experience
+* **Responsive Design:** Fully responsive interface optimized for mobile and desktop usage.
+* **Theme Support:** Built-in Light Mode and Dark Mode with seamless switching.
+* **Localization:** Complete bilingual support for Vietnamese and English.
+* **Data Persistence:** Utilizes LocalStorage to persist data across sessions without requiring a backend database.
 
-## Learn More
+### History & Archiving
+* **Settlement Workflow:** Mark all debts as settled to archive current bills.
+* **History View:** Review past settled bills and split details.
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Current Version: 3.1
+Status: Active
