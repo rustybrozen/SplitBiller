@@ -20,6 +20,7 @@ export interface Bill {
   selectedMembers: number[];
   extraSplits: ExtraSplit[];
   status: 'open' | 'closed';
+  batchId?: number;
 }
 
 export interface Transfer {
@@ -32,4 +33,20 @@ export interface AppSettings {
   roundingMode: 'none' | 'smart';
   language: 'vi' | 'en';
   theme: 'light' | 'dark';
+  simplifyDebts: boolean;
+  myId?: number;        
+  bankBin?: string;      
+  bankAccountNo?: string; 
+  bankAccountName?: string; 
 }
+
+export interface DebtRecord {
+  id: number;
+  memberId: number;
+  amount: number;
+  type: 'borrow' | 'lend';
+  note: string;
+  date: string;
+  status: 'active' | 'settled';
+}
+
