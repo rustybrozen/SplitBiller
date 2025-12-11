@@ -137,16 +137,16 @@ export default function DebtPage() {
                </div>
             )}
 
-            {/* 2. NHẬP NỢ */}
+           
             {state.activeTab === 'input' && (
                <div className="animate-in slide-in-from-bottom-4 duration-300">
                   <div className={`p-6 shadow-lg border rounded-none ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/10'}`}>
                      <h2 className={`text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>
-                        <Wallet size={24} /> {t.tabDebtInput}
+                        {t.tabDebtInput}
                      </h2>
 
                      <div className="space-y-4">
-                        {/* Chọn loại giao dịch */}
+                
                         <div className="flex gap-2">
                            <button
                               onClick={() => actions.setNewDebt({ ...state.newDebt, type: 'borrow' })}
@@ -204,12 +204,12 @@ export default function DebtPage() {
                </div>
             )}
 
-            {/* 3. MÌNH NỢ (MÀU ĐỎ) */}
+        
             {state.activeTab === 'pay' && (
                <div className="animate-in slide-in-from-bottom-4 duration-300">
                   <div className={`p-6 shadow-lg border rounded-none ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/10'}`}>
                      <h2 className="text-xl font-bold mb-4 uppercase tracking-widest text-red-500 flex items-center gap-2">
-                        <AlertTriangle size={24} /> {t.totalOwe}
+                        {t.totalOwe}
                      </h2>
                      <div className="space-y-3">
                         {state.debts.filter(d => d.type === 'borrow').length === 0 && <p className="text-center text-gray-400 italic">{t.emptyDebt}</p>}
@@ -236,12 +236,12 @@ export default function DebtPage() {
                </div>
             )}
 
-            {/* 4. THU NỢ (MÀU ACCENT) */}
+        
             {state.activeTab === 'receive' && (
                <div className="animate-in slide-in-from-bottom-4 duration-300">
                   <div className={`p-6 shadow-lg border rounded-none ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/10'}`}>
                      <h2 className={`text-xl font-bold mb-4 uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>
-                        <PiggyBank size={24} /> {t.totalReceivable}
+                        {t.totalReceivable}
                      </h2>
                      <div className="space-y-3">
                         {state.debts.filter(d => d.type === 'lend').length === 0 && <p className="text-center text-gray-400 italic">{t.emptyDebt}</p>}
