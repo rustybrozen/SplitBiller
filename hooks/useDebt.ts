@@ -18,8 +18,37 @@ export const useDebt = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const [members, setMembers] = useState<Member[]>([]);
-  const [settings, setSettings] = useState<AppSettings>({ 
-    roundingMode: 'none', language: 'vi', theme: 'light', simplifyDebts: true 
+const [settings, setSettings] = useState<AppSettings>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem("aesthetic_settings");
+        if (saved) {
+          return {
+            roundingMode: "none",
+            language: "vi",
+            theme: "light",
+            simplifyDebts: true,
+            myId: undefined,
+            bankBin: "",
+            bankAccountNo: "",
+            bankAccountName: "",
+            ...JSON.parse(saved)
+          };
+        }
+      } catch (e) {
+        console.error("Load settings error", e);
+      }
+    }
+    return {
+      roundingMode: "none",
+      language: "vi",
+      theme: "light",
+      simplifyDebts: true,
+      myId: undefined,
+      bankBin: "",
+      bankAccountNo: "",
+      bankAccountName: "",
+    };
   });
   
   const [newMemberName, setNewMemberName] = useState('');
@@ -36,11 +65,11 @@ export const useDebt = () => {
   useEffect(() => {
     try {
         const savedMembers = localStorage.getItem("aesthetic_members");
-        const savedSettings = localStorage.getItem("aesthetic_settings");
+        // const savedSettings = localStorage.getItem("aesthetic_settings");
         const savedDebts = localStorage.getItem("aesthetic_debts");
 
         if (savedMembers) setMembers(JSON.parse(savedMembers));
-        if (savedSettings) setSettings(JSON.parse(savedSettings));
+        // if (savedSettings) setSettings(JSON.parse(savedSettings));
         if (savedDebts) setDebts(JSON.parse(savedDebts));
     } catch (e) {
         console.error("Load error:", e);

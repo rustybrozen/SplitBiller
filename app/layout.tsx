@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SplitBiller",
+  title: "AnhPan SplitBiller",
   description: "App chia bill nhanh",
 };
 

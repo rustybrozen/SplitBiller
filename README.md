@@ -28,8 +28,3 @@ SplitBiller is a minimalist and aesthetic expense sharing application built with
 * **Settlement Workflow:** Mark all debts as settled to archive current bills.
 * **History View:** Review past settled bills and split details.
 
-
-## Project Status
-
-Current Version: 3.1
-Status: Active

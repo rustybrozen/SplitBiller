@@ -10,15 +10,38 @@ export const useBillApp = () => {
   >("members");
   const [members, setMembers] = useState<Member[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
-  const [settings, setSettings] = useState<AppSettings>({
-    roundingMode: "none",
-    language: "vi",
-    theme: "light",
-    simplifyDebts: true,
-    myId: undefined,
-    bankBin: "",
-    bankAccountNo: "",
-    bankAccountName: "",
+const [settings, setSettings] = useState<AppSettings>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem("aesthetic_settings");
+        if (saved) {
+          return {
+            roundingMode: "none",
+            language: "vi",
+            theme: "light",
+            simplifyDebts: true,
+            myId: undefined,
+            bankBin: "",
+            bankAccountNo: "",
+            bankAccountName: "",
+            ...JSON.parse(saved)
+          };
+        }
+      } catch (e) {
+        console.error("Load settings error", e);
+      }
+    }
+
+    return {
+      roundingMode: "none",
+      language: "vi",
+      theme: "light",
+      simplifyDebts: true,
+      myId: undefined,
+      bankBin: "",
+      bankAccountNo: "",
+      bankAccountName: "",
+    };
   });
 
   const [newMemberName, setNewMemberName] = useState("");
@@ -62,14 +85,14 @@ export const useBillApp = () => {
       try {
         const savedMembers = localStorage.getItem("aesthetic_members");
         const savedBills = localStorage.getItem("aesthetic_bills");
-        const savedSettings = localStorage.getItem("aesthetic_settings");
+        // const savedSettings = localStorage.getItem("aesthetic_settings");
 
         if (savedMembers) setMembers(JSON.parse(savedMembers));
         if (savedBills) setBills(JSON.parse(savedBills));
-        if (savedSettings) {
-          const parsed = JSON.parse(savedSettings);
-          setSettings((prev) => ({ ...prev, ...parsed }));
-        }
+        // if (savedSettings) {
+        //   const parsed = JSON.parse(savedSettings);
+        //   setSettings((prev) => ({ ...prev, ...parsed }));
+        // }
       } catch (e) {
         console.error("Load error", e);
       } finally {

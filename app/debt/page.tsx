@@ -50,10 +50,12 @@ export default function DebtPage() {
    const { isDark, t } = computed;
 
    return (
-      <div className={`min-h-screen font-sans selection:bg-[#6482AD] selection:text-white pb-24 transition-colors duration-300
+      <div 
+      suppressHydrationWarning
+      className={`min-h-screen font-sans selection:bg-[#6482AD] selection:text-white pb-24 transition-colors duration-300
       ${isDark ? 'bg-black text-neutral-200' : 'bg-[#F5EDED] text-[#2C3E50]'}`}>
 
-         <HeaderSwitch isDark={isDark} />
+          <HeaderSwitch isDark={isDark} splitText={t.splitText} debtText={t.debtText} />
 
          <main className="max-w-md mx-auto px-4 space-y-6">
 
@@ -341,7 +343,7 @@ export default function DebtPage() {
             {state.activeTab === 'settings' && (
                <div className="animate-in slide-in-from-bottom-4 duration-300 space-y-4">
                   <div className={`p-6 shadow-lg border rounded-none space-y-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/10'}`}>
-                     <h2 className={`text-xl font-bold uppercase tracking-widest border-b pb-2 flex items-center gap-2 ${isDark ? 'text-white border-neutral-800' : 'text-[#2C3E50] border-gray-100'}`}>
+                     <h2 className={`text-xl font-bold uppercase tracking-widest pb-2 flex items-center gap-2 ${isDark ? 'text-white border-neutral-800' : 'text-[#2C3E50] border-gray-100'}`}>
                         <Settings size={20} /> {t.settingTitle || 'Settings'}
                      </h2>
 

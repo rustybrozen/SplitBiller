@@ -4,7 +4,7 @@ import React, { useState, ButtonHTMLAttributes, InputHTMLAttributes, ReactNode }
 import {
   Trash2, Edit2, Plus, Copy, Check,
   Receipt, User, X, Calculator, Info,
-  Settings, History, ArchiveRestore,
+  Settings, History,
   Eye, AlertTriangle, Moon, Sun,
   QrCode,
   CreditCard
@@ -62,9 +62,9 @@ const Input = ({ label, isDark, hasError, ...props }: InputProps) => (
     <input
       className={`w-full border-b-2 rounded-none px-4 py-3 transition-all outline-none placeholder:text-[#6482AD]/30 
       ${hasError ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-[#6482AD]'}
-      ${isDark 
-        ? (hasError ? 'bg-red-900/20 text-white' : 'bg-neutral-900 text-white focus:bg-black') 
-        : (hasError ? 'bg-red-50 text-red-900' : 'bg-[#F5EDED] text-[#2C3E50]')}`}
+      ${isDark
+          ? (hasError ? 'bg-red-900/20 text-white' : 'bg-neutral-900 text-white focus:bg-black')
+          : (hasError ? 'bg-red-50 text-red-900' : 'bg-[#F5EDED] text-[#2C3E50]')}`}
       {...props}
     />
   </div>
@@ -74,7 +74,6 @@ const Dialog = ({ isOpen, onClose, title, children, footer, isDark }: { isOpen: 
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      {/* Backdrop đen hơn */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={onClose} />
       <div className={`rounded-none shadow-2xl w-full max-w-md z-10 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 border-2 border-[#6482AD]/20 
         ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
@@ -131,10 +130,12 @@ const BillSplitter = () => {
   };
 
   return (
-    <div className={`min-h-screen font-sans selection:bg-[#6482AD] selection:text-white pb-24 transition-colors duration-300
+    <div
+    suppressHydrationWarning
+    className={`min-h-screen font-sans selection:bg-[#6482AD] selection:text-white pb-24 transition-colors duration-300
       ${isDark ? 'bg-black text-neutral-200' : 'bg-[#F5EDED] text-[#2C3E50]'}`}>
 
-      <HeaderSwitch isDark={isDark} />
+      <HeaderSwitch isDark={isDark} splitText={t.splitText} debtText={t.debtText} />
 
       <main className="max-w-md mx-auto px-4 space-y-6">
 
@@ -241,50 +242,50 @@ const BillSplitter = () => {
               </h2>
 
               <div className="space-y-4">
-              {state.billErrors.general && (
+                {state.billErrors.general && (
                   <div className="text-xs font-bold text-red-500 bg-red-50 p-3 border border-red-200 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 rounded-none">
                     <AlertTriangle size={16} /> {state.billErrors.general}
                   </div>
                 )}
 
-                <Input 
-                  label={t.descLabel} 
-                  placeholder={t.descPlaceholder} 
-                  value={state.billDesc} 
+                <Input
+                  label={t.descLabel}
+                  placeholder={t.descPlaceholder}
+                  value={state.billDesc}
                   hasError={state.billErrors.desc}
                   onChange={(e) => {
                     actions.setBillDesc(e.target.value);
-                    if (state.billErrors.desc) actions.setBillErrors({...state.billErrors, desc: false, general: ''});
-                  }} 
-                  isDark={isDark} 
+                    if (state.billErrors.desc) actions.setBillErrors({ ...state.billErrors, desc: false, general: '' });
+                  }}
+                  isDark={isDark}
                 />
-                
+
                 <div className="flex gap-4">
-                  <Input 
-                    label={t.amountLabel} 
-                    type="number" 
-                    placeholder="0" 
-                    value={state.billAmount} 
+                  <Input
+                    label={t.amountLabel}
+                    type="number"
+                    placeholder="0"
+                    value={state.billAmount}
                     hasError={state.billErrors.amount}
                     onChange={(e) => {
                       actions.setBillAmount(e.target.value);
-                      if (state.billErrors.amount) actions.setBillErrors({...state.billErrors, amount: false, general: ''});
-                    }} 
-                    isDark={isDark} 
+                      if (state.billErrors.amount) actions.setBillErrors({ ...state.billErrors, amount: false, general: '' });
+                    }}
+                    isDark={isDark}
                   />
-                  
+
                   <div className="w-full flex flex-col gap-1">
                     <label className={`text-xs font-bold uppercase tracking-wider ml-1 ${state.billErrors.payer ? 'text-red-500' : 'text-[#6482AD]'}`}>{t.payerLabel}</label>
                     <select
                       className={`w-full rounded-none px-4 py-3 outline-none appearance-none cursor-pointer border-b-2 transition-all font-sans
                        ${state.billErrors.payer ? 'border-red-500' : 'border-transparent focus:border-[#6482AD]'}
-                       ${isDark 
-                          ? (state.billErrors.payer ? 'bg-red-900/20 text-white' : 'bg-neutral-800 text-white') 
+                       ${isDark
+                          ? (state.billErrors.payer ? 'bg-red-900/20 text-white' : 'bg-neutral-800 text-white')
                           : (state.billErrors.payer ? 'bg-red-50 text-red-900' : 'bg-[#F5EDED] text-[#2C3E50]')}`}
                       value={state.billPayer}
                       onChange={(e) => {
                         actions.setBillPayer(e.target.value);
-                        if (state.billErrors.payer) actions.setBillErrors({...state.billErrors, payer: false, general: ''});
+                        if (state.billErrors.payer) actions.setBillErrors({ ...state.billErrors, payer: false, general: '' });
                       }}
                     >
                       <option value="">{t.selectPayer}</option>
@@ -336,70 +337,81 @@ const BillSplitter = () => {
                           </button>
                         )
                       })}
-            
-                    {state.billSelectedMembers.length > 0 && (
-                      <div className={`mt-4 space-y-3 border-t pt-4 ${isDark ? 'border-neutral-700' : 'border-[#6482AD]/10'}`}>
-                        <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Thêm/Bớt tiền riêng (Tuỳ chọn)</p>
 
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {state.billSelectedMembers.map(mid => {
-                            const m = state.members.find(x => x.id === mid);
-                            if (!m) return null;
-                            const isAdjusting = state.billEqualAdjustments[mid] !== undefined;
-                            return (
-                              <button
-                                key={m.id}
-                                onClick={() => {
-                                  const newAdj = { ...state.billEqualAdjustments };
-                                  if (isAdjusting) {
-                                    delete newAdj[mid]; // Bấm lần 2 thì xoá
-                                  } else {
-                                    newAdj[mid] = '';   // Bấm lần 1 thì mở input
-                                  }
-                                  actions.setBillEqualAdjustments(newAdj);
-                                }}
-                                className={`px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wide border transition-all ${
-                                  isAdjusting
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-md'
-                                    : isDark ? 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700' : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
-                                }`}
-                              >
-                                {m.name}
-                              </button>
-                            );
-                          })}
-                        </div>
+                      {state.billSelectedMembers.length > 0 && (
+                        <div className={`mt-4 space-y-3 border-t pt-4 ${isDark ? 'border-neutral-700' : 'border-[#6482AD]/10'}`}>
+                          <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Thêm/Bớt tiền riêng (Tuỳ chọn)</p>
 
-                   
-                        {Object.keys(state.billEqualAdjustments).length > 0 && (
-                          <div className="space-y-2 mt-3 p-3 bg-amber-500/5 border border-amber-500/20">
+
+                          <div className="flex flex-wrap gap-2">
                             {state.billSelectedMembers.map(mid => {
-                              if (state.billEqualAdjustments[mid] === undefined) return null;
                               const m = state.members.find(x => x.id === mid);
+                              if (!m) return null;
+                              const isAdjusting = state.billEqualAdjustments[mid] !== undefined;
                               return (
-                                <div key={m?.id} className="flex items-center gap-2 animate-in slide-in-from-top-2 fade-in duration-200">
-                                  <span className={`text-sm w-20 truncate font-medium ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>{m?.name}</span>
-                                  <input
-                                    type="text"
-                                    autoFocus
-                                    placeholder="VD: -10000 25000"
-                                    className={`flex-1 px-3 py-1.5 text-sm border-b-2 border-transparent focus:border-amber-500 outline-none transition-all rounded-none ${
-                                      isDark ? 'bg-neutral-900 text-white placeholder:text-neutral-600' : 'bg-white text-[#2C3E50] placeholder:text-gray-300'
+                                <button
+                                  key={m.id}
+                                  onClick={() => {
+                                    const newAdj = { ...state.billEqualAdjustments };
+                                    if (isAdjusting) {
+                                      delete newAdj[mid];
+                                    } else {
+                                      newAdj[mid] = '';
+                                    }
+                                    actions.setBillEqualAdjustments(newAdj);
+                                  }}
+                                  className={`px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wide border transition-all ${isAdjusting
+                                      ? 'bg-amber-500 text-white border-amber-500 shadow-md'
+                                      : isDark ? 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700' : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
                                     }`}
-                                    value={state.billEqualAdjustments[mid] || ''}
-                                    onChange={(e) => actions.setBillEqualAdjustments({...state.billEqualAdjustments, [mid]: e.target.value})}
-                                  />
-                                </div>
+                                >
+                                  {m.name}
+                                </button>
                               );
                             })}
-                            <p className="text-[10px] text-gray-400 italic pt-1">
-                              *Nhập số tiền phát sinh (VD: ăn hàu 20k, ko uống nước -15k thì gõ: 20000 -15000).
-                            </p>
                           </div>
-                        )}
-                      </div>
-                    )}
+
+                          {Object.keys(state.billEqualAdjustments || {}).length > 0 && (
+                            <div className={`space-y-3 mt-4 p-3 border-l-4 border-amber-500 w-full overflow-hidden ${isDark ? 'bg-amber-500/5' : 'bg-amber-50'}`}>
+                              <p className="text-[10px] text-gray-500 italic mb-2 break-words whitespace-normal leading-relaxed">
+                                *Nhập số tiền phát sinh (VD: ăn hàu 20k, ko uống nước -15k thì gõ: 20000 -15000).
+                              </p>
+
+                              {state.billSelectedMembers.map(mid => {
+                                if (state.billEqualAdjustments?.[mid] === undefined) return null;
+                                const m = state.members.find(x => x.id === mid);
+
+                                return (
+                                  <div
+                                    key={m?.id}
+                                    className={`flex w-full items-stretch border transition-all animate-in slide-in-from-top-2 fade-in duration-200 shadow-sm rounded-none overflow-hidden
+                                    ${isDark ? 'border-neutral-700 bg-neutral-900 focus-within:border-amber-500' : 'border-gray-200 bg-white focus-within:border-amber-500'}`}
+                                  >
+
+                                    <div className={`flex items-center justify-center px-2 py-2.5 w-[75px] shrink-0 border-r
+                                    ${isDark ? 'bg-neutral-800 border-neutral-700 text-neutral-300' : 'bg-gray-100 border-gray-200 text-[#2C3E50]'}`}>
+                                      <span className="text-xs font-bold truncate w-full text-center">{m?.name}</span>
+                                    </div>
+
+
+                                    <input
+                                      type="text"
+                                      inputMode="text"
+                                      autoCapitalize="none"
+                                      autoComplete="off"
+                                      placeholder="VD: 20000 -15000"
+                                      className={`flex-1 w-full min-w-0 px-3 py-2.5 text-sm outline-none bg-transparent 
+                                      ${isDark ? 'text-white placeholder:text-neutral-600' : 'text-[#2C3E50] placeholder:text-gray-400'}`}
+                                      value={state.billEqualAdjustments[mid] || ''}
+                                      onChange={(e) => actions.setBillEqualAdjustments({ ...state.billEqualAdjustments, [mid]: e.target.value })}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -680,13 +692,38 @@ const BillSplitter = () => {
                   </div>
                 </div>
               </div>
-              {/* SETTING: NGÂN HÀNG & ĐỊNH DANH */}
+
+                       <div className="space-y-4 border-t border-[#6482AD]/10 pt-4">
+                <label className="text-xs font-bold text-[#6482AD] uppercase tracking-wider block">{t.simplifyDebts}</label>
+                <div
+                  onClick={() => actions.setSettings({ ...state.settings, simplifyDebts: !state.settings.simplifyDebts })}
+                  className={`p-3 border cursor-pointer transition-all flex justify-between items-center 
+            ${isDark ? 'border-neutral-700' : 'border-gray-200'}
+            ${state.settings.simplifyDebts ? (isDark ? 'bg-neutral-800' : 'bg-blue-50') : ''}
+        `}
+                >
+                  <div className="flex-1 pr-4">
+                    <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>
+                      {t.simplifyDebts}
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-1">
+                      {t.simplifyDebtsDesc}
+                    </div>
+                  </div>
+
+                  {/* Toggle Switch UI */}
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${state.settings.simplifyDebts ? 'bg-[#6482AD]' : 'bg-gray-300'}`}>
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm ${state.settings.simplifyDebts ? 'left-6' : 'left-1'}`} />
+                  </div>
+                </div>
+              </div>
+        
               <div className="space-y-4 border-t border-[#6482AD]/10 pt-4">
                 <h3 className="text-sm font-bold text-[#6482AD] uppercase tracking-wider flex items-center gap-2">
                   <CreditCard size={16} /> {t.bankSettings}
                 </h3>
 
-                {/* Chọn: Tôi là ai */}
+        
                 <div className="bg-yellow-50 p-3 border border-yellow-200 rounded-none mb-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">{t.whoAmI}</label>
                   <select
@@ -701,7 +738,7 @@ const BillSplitter = () => {
                   </select>
                 </div>
 
-                {/* Dropdown Ngân hàng */}
+            
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">{t.bankName}</label>
                   <select
@@ -716,7 +753,7 @@ const BillSplitter = () => {
                   </select>
                 </div>
 
-                {/* Input STK */}
+            
                 <Input
                   label={t.bankAccount}
                   value={state.settings.bankAccountNo}
@@ -725,7 +762,7 @@ const BillSplitter = () => {
                   isDark={isDark}
                 />
 
-                {/* Input Tên chủ thẻ */}
+        
                 <Input
                   label={t.bankOwner}
                   value={state.settings.bankAccountName}
@@ -783,30 +820,7 @@ const BillSplitter = () => {
                 </div>
               </div>
 
-              <div className="space-y-4 border-t border-[#6482AD]/10 pt-4">
-                <label className="text-xs font-bold text-[#6482AD] uppercase tracking-wider block">{t.simplifyDebts}</label>
-                <div
-                  onClick={() => actions.setSettings({ ...state.settings, simplifyDebts: !state.settings.simplifyDebts })}
-                  className={`p-3 border cursor-pointer transition-all flex justify-between items-center 
-            ${isDark ? 'border-neutral-700' : 'border-gray-200'}
-            ${state.settings.simplifyDebts ? (isDark ? 'bg-neutral-800' : 'bg-blue-50') : ''}
-        `}
-                >
-                  <div className="flex-1 pr-4">
-                    <div className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>
-                      {t.simplifyDebts}
-                    </div>
-                    <div className="text-[10px] text-gray-400 mt-1">
-                      {t.simplifyDebtsDesc}
-                    </div>
-                  </div>
-
-                  {/* Toggle Switch UI */}
-                  <div className={`w-10 h-5 rounded-full relative transition-colors ${state.settings.simplifyDebts ? 'bg-[#6482AD]' : 'bg-gray-300'}`}>
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm ${state.settings.simplifyDebts ? 'left-6' : 'left-1'}`} />
-                  </div>
-                </div>
-              </div>
+     
 
               <div className="pt-4 text-center">
                 <p className="text-[10px] text-gray-300 uppercase tracking-widest">{t.version}</p>
