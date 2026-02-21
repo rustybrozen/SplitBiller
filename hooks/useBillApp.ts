@@ -28,7 +28,7 @@ export const useBillApp = () => {
   const [billDesc, setBillDesc] = useState("");
   const [billPayer, setBillPayer] = useState<string>("");
   const [billSplitType, setBillSplitType] = useState<"equal" | "advanced">(
-    "equal"
+    "equal",
   );
   const [billSelectedMembers, setBillSelectedMembers] = useState<number[]>([]);
   const [billExtraSplits, setBillExtraSplits] = useState<ExtraSplit[]>([]);
@@ -43,6 +43,15 @@ export const useBillApp = () => {
     members: [],
   });
   const [historyDetailBill, setHistoryDetailBill] = useState<Bill | null>(null);
+  const [billEqualAdjustments, setBillEqualAdjustments] = useState<
+    Record<number, string>
+  >({});
+  const [billErrors, setBillErrors] = useState<{
+    desc?: boolean;
+    amount?: boolean;
+    payer?: boolean;
+    general?: string;
+  }>({});
 
   const t = TRANSLATIONS[settings.language];
   const isDark = settings.theme === "dark";
@@ -75,7 +84,7 @@ export const useBillApp = () => {
     localStorage.setItem("aesthetic_members", JSON.stringify(members));
     localStorage.setItem("aesthetic_bills", JSON.stringify(bills));
     localStorage.setItem("aesthetic_settings", JSON.stringify(settings));
-  }, [members, bills, settings,isLoaded]);
+  }, [members, bills, settings, isLoaded]);
 
   const formatMoney = (amount: number) =>
     new Intl.NumberFormat(settings.language === "vi" ? "vi-VN" : "en-US", {
@@ -84,14 +93,14 @@ export const useBillApp = () => {
     }).format(amount);
   const formatNumberOnly = (amount: number) =>
     new Intl.NumberFormat(
-      settings.language === "vi" ? "vi-VN" : "en-US"
+      settings.language === "vi" ? "vi-VN" : "en-US",
     ).format(amount);
 
   const getRemainingAmount = () => {
     const total = parseFloat(billAmount) || 0;
     const allocated = billExtraSplits.reduce(
       (acc, curr) => acc + curr.amount,
-      0
+      0,
     );
     return total - allocated;
   };
@@ -103,8 +112,20 @@ export const useBillApp = () => {
     if (remainder < 500) return Math.floor(amount / 1000) * 1000;
     return Math.ceil(amount / 1000) * 1000;
   };
+  const parseAdjustment = (val: string): number | null => {
+    if (!val || !val.trim()) return 0;
+    const parts = val.trim().split(/\s+/);
+    let sum = 0;
+    for (const p of parts) {
+      const num = Number(p);
+      if (isNaN(num)) return null; 
+      sum += num;
+    }
+    return sum;
+  };
 
   const addMember = () => {
+    if (members.some(m => m.name === newMemberName.trim())) { alert(t.conflictName); return; }
     if (!newMemberName.trim()) return;
     const newMember = { id: Date.now(), name: newMemberName.trim() };
     setMembers([...members, newMember]);
@@ -112,10 +133,22 @@ export const useBillApp = () => {
     setBillSelectedMembers((prev) => [...prev, newMember.id]);
   };
 
-  const removeMember = (id: number) => {
+const removeMember = (id: number) => {
+    const isInvolvedInOpenBill = bills.some(b => 
+      b.status === 'open' && (
+        b.payer === id || 
+        (b.splitType === 'equal' && b.selectedMembers.includes(id)) ||
+        (b.splitType === 'advanced' && b.extraSplits.some(ex => ex.members.includes(id)))
+      )
+    );
+
+    if (isInvolvedInOpenBill) {
+      alert(t.hasUnpaidBill);
+      return;
+    }
+
     if (confirm(t.confirmDeleteMember)) {
       setMembers(members.filter((m) => m.id !== id));
-      setBills(bills.filter((b) => b.payer !== id));
     }
   };
 
@@ -126,15 +159,49 @@ export const useBillApp = () => {
     setBillSplitType("equal");
     setBillSelectedMembers(members.map((m) => m.id));
     setBillExtraSplits([]);
+    setBillEqualAdjustments({});
+    setBillErrors({});
     setIsEditingBill(false);
     setEditingBillId(null);
   };
 
   const handleSaveBill = () => {
-    if (!billAmount || !billDesc || !billPayer) {
-      alert(t.alertFillInfo);
+const errors: { desc?: boolean; amount?: boolean; payer?: boolean; general?: string } = {};
+    if (!billDesc) errors.desc = true;
+    if (!billAmount) errors.amount = true;
+    if (!billPayer) errors.payer = true;
+
+    if (Object.keys(errors).length > 0) {
+      errors.general = t.alertFillInfo;
+      setBillErrors(errors);
       return;
     }
+    if (billSplitType === "advanced") {
+      const totalAllocated = billExtraSplits.reduce((sum, item) => sum + item.amount, 0);
+      if (totalAllocated > parseFloat(billAmount)) {
+        setBillErrors({ general: "Tiền chia lẻ lớn tổng bill. Vui lòng chia lại hợp lý!" });
+        return;
+      }
+    }
+
+    const finalAdjustments: Record<number, number> = {};
+    if (billSplitType === "equal") {
+      for (const id of billSelectedMembers) {
+        if (billEqualAdjustments[id] !== undefined) {
+          const strVal = billEqualAdjustments[id] || "";
+          const parsed = parseAdjustment(strVal);
+          if (parsed === null) {
+            setBillErrors({ general: "Lỗ! Nhập thêm/bớt tiền bị sai format." });
+            return;
+          }
+          if (parsed !== 0) {
+            finalAdjustments[id] = parsed;
+          }
+        }
+      }
+    }
+
+    setBillErrors({});
 
     const action = isEditingBill ? t.update : t.create;
     if (!confirm(`${t.alertConfirmAction} ${action} ${t.alertConfirmBill}`))
@@ -146,11 +213,12 @@ export const useBillApp = () => {
       description: billDesc,
       payer: parseInt(billPayer),
       date: new Date().toLocaleDateString(
-        settings.language === "vi" ? "vi-VN" : "en-US"
+        settings.language === "vi" ? "vi-VN" : "en-US",
       ),
       splitType: billSplitType,
       selectedMembers: billSelectedMembers,
       extraSplits: billExtraSplits,
+      equalAdjustments: finalAdjustments,
       status: "open",
     };
 
@@ -159,8 +227,8 @@ export const useBillApp = () => {
         bills.find((b) => b.id === newBill.id)?.status || "open";
       setBills(
         bills.map((b) =>
-          b.id === newBill.id ? { ...newBill, status: existingStatus } : b
-        )
+          b.id === newBill.id ? { ...newBill, status: existingStatus } : b,
+        ),
       );
     } else {
       setBills([...bills, newBill]);
@@ -178,6 +246,14 @@ export const useBillApp = () => {
     setBillSplitType(bill.splitType);
     setBillSelectedMembers(bill.selectedMembers);
     setBillExtraSplits(bill.extraSplits);
+    const editAdj: Record<number, string> = {};
+    if (bill.equalAdjustments) {
+      Object.entries(bill.equalAdjustments).forEach(([id, val]) => {
+        editAdj[parseInt(id)] = val.toString();
+      });
+    }
+    setBillEqualAdjustments(editAdj);
+
     setIsEditingBill(true);
     setEditingBillId(bill.id);
     setActiveTab("bills");
@@ -232,19 +308,22 @@ export const useBillApp = () => {
     setBillExtraSplits(billExtraSplits.filter((i) => i.id !== id));
   };
 
-  const settleAllBills = () => {
+const settleAllBills = () => {
     if (confirm(t.settleConfirm)) {
-      const batchId = Date.now(); // <--- Tạo ID cho đợt chốt này
+      const batchId = Date.now(); 
+      
+      const currentNames: Record<number, string> = {};
+      members.forEach(m => currentNames[m.id] = m.name);
+
       setBills(
         bills.map((b) =>
-          b.status === "open" ? { ...b, status: "closed", batchId } : b
+          b.status === "open" ? { ...b, status: "closed", batchId, memberSnapshot: currentNames } : b
         )
       );
       setActiveTab("history");
     }
   };
   const calculateTransfers = useMemo(() => {
-    // 1. Nếu bật chế độ "Tối giản nợ" (Logic cũ của ông)
     if (settings.simplifyDebts) {
       const balances: Record<number, number> = {};
       members.forEach((m) => (balances[m.id] = 0));
@@ -257,22 +336,64 @@ export const useBillApp = () => {
 
         if (bill.splitType === "equal") {
           const involvedCount = bill.selectedMembers.length || 1;
-          const share = totalAmount / involvedCount;
-          bill.selectedMembers.forEach((id) => (shares[id] = share));
+          const baseShare = totalAmount / involvedCount; // Chia đều ban đầu (VD: 10k)
+          const parsedAdjustments = bill.equalAdjustments || {};
+
+          let totalAdjustments = 0;
+          const unadjustedMembers: number[] = [];
+
+          // Xem thằng nào có thêm/bớt, thằng nào ăn bình thường
+          bill.selectedMembers.forEach((id) => {
+            const adj = parsedAdjustments[id] || 0;
+            if (adj === 0) {
+              unadjustedMembers.push(id);
+            } else {
+              totalAdjustments += adj;
+            }
+          });
+
+          const spreadCount =
+            unadjustedMembers.length > 0
+              ? unadjustedMembers.length
+              : involvedCount;
+          const spreadAmount = -totalAdjustments / spreadCount;
+
+          bill.selectedMembers.forEach((id) => {
+            const adj = parsedAdjustments[id] || 0;
+            if (adj !== 0) {
+              shares[id] =
+                baseShare +
+                adj +
+                (unadjustedMembers.length === 0 ? spreadAmount : 0);
+            } else {
+              shares[id] = baseShare + spreadAmount;
+            }
+          });
         } else {
           let allocatedAmount = 0;
+          const extraSplitMemberIds = new Set<number>();
+
           bill.extraSplits.forEach((split) => {
             const splitShare = split.amount / split.members.length;
             split.members.forEach((id) => {
               shares[id] = (shares[id] || 0) + splitShare;
+              extraSplitMemberIds.add(id);
             });
             allocatedAmount += split.amount;
           });
+
           const remaining = totalAmount - allocatedAmount;
           if (remaining > 0) {
-            const share = remaining / members.length;
-            members.forEach(
-              (m) => (shares[m.id] = (shares[m.id] || 0) + share)
+            const remainingMembers = members.filter(
+              (m) => !extraSplitMemberIds.has(m.id),
+            );
+
+            const poolToSplit =
+              remainingMembers.length > 0 ? remainingMembers : members;
+            const share = remaining / poolToSplit.length;
+
+            poolToSplit.forEach(
+              (m) => (shares[m.id] = (shares[m.id] || 0) + share),
             );
           }
         }
@@ -283,7 +404,6 @@ export const useBillApp = () => {
         });
       });
 
-      // Logic tìm người nợ/người nhận (giữ nguyên logic cũ)
       const debtors = [];
       const creditors = [];
       for (const [id, amount] of Object.entries(balances)) {
@@ -314,11 +434,7 @@ export const useBillApp = () => {
         if (creditor.amount < 1) j++;
       }
       return transfers;
-    }
-
-    // 2. Nếu TẮT chế độ tối giản (Tính chi tiết trực tiếp giữa 2 người)
-    else {
-      // Ma trận nợ: debts[from][to] = amount
+    } else {
       const debts: Record<number, Record<number, number>> = {};
 
       bills
@@ -326,7 +442,6 @@ export const useBillApp = () => {
         .forEach((bill) => {
           const payer = bill.payer;
 
-          // Hàm helper để cộng nợ
           const addDebt = (from: number, to: number, amount: number) => {
             if (from === to) return;
             if (!debts[from]) debts[from] = {};
@@ -334,41 +449,80 @@ export const useBillApp = () => {
           };
 
           if (bill.splitType === "equal") {
-            const share = bill.amount / (bill.selectedMembers.length || 1);
-            bill.selectedMembers.forEach((memberId) =>
-              addDebt(memberId, payer, share)
-            );
+            const involvedCount = bill.selectedMembers.length || 1;
+            const baseShare = bill.amount / involvedCount;
+            const parsedAdjustments = bill.equalAdjustments || {};
+
+            let totalAdjustments = 0;
+            const unadjustedMembers: number[] = [];
+
+            bill.selectedMembers.forEach((id) => {
+              const adj = parsedAdjustments[id] || 0;
+              if (adj === 0) {
+                unadjustedMembers.push(id);
+              } else {
+                totalAdjustments += adj;
+              }
+            });
+
+            const spreadCount =
+              unadjustedMembers.length > 0
+                ? unadjustedMembers.length
+                : involvedCount;
+            const spreadAmount = -totalAdjustments / spreadCount;
+
+            bill.selectedMembers.forEach((memberId) => {
+              const adj = parsedAdjustments[memberId] || 0;
+              let share = 0;
+              if (adj !== 0) {
+                share =
+                  baseShare +
+                  adj +
+                  (unadjustedMembers.length === 0 ? spreadAmount : 0);
+              } else {
+                share = baseShare + spreadAmount;
+              }
+
+              addDebt(memberId, payer, share);
+            });
           } else {
             let allocated = 0;
+            const extraSplitMemberIds = new Set<number>();
+
             bill.extraSplits.forEach((split) => {
               const share = split.amount / split.members.length;
-              split.members.forEach((mId) => addDebt(mId, payer, share));
+              split.members.forEach((mId) => {
+                addDebt(mId, payer, share);
+                extraSplitMemberIds.add(mId);
+              });
               allocated += split.amount;
             });
+
             const remaining = bill.amount - allocated;
             if (remaining > 0) {
-              const share = remaining / members.length;
-              members.forEach((member) => addDebt(member.id, payer, share));
+              const remainingMembers = members.filter(
+                (m) => !extraSplitMemberIds.has(m.id),
+              );
+              const poolToSplit =
+                remainingMembers.length > 0 ? remainingMembers : members;
+              const share = remaining / poolToSplit.length;
+
+              poolToSplit.forEach((member) => addDebt(member.id, payer, share));
             }
           }
         });
 
-      // Chuyển ma trận nợ thành mảng Transfer
       const transfers: Transfer[] = [];
       Object.keys(debts).forEach((fromId) => {
         Object.keys(debts[parseInt(fromId)]).forEach((toId) => {
           const amount = debts[parseInt(fromId)][parseInt(toId)];
-          // Kiểm tra xem thằng kia có nợ ngược lại không để cấn trừ trực tiếp 2 đứa (optional)
-          // Nhưng ở chế độ Detailed, thường người ta muốn thấy rõ ràng từng chiều,
-          // tuy nhiên để gọn thì nên cấn trừ 2 chiều (A->B 10k, B->A 5k => A->B 5k)
 
           const reverseDebt = debts[parseInt(toId)]?.[parseInt(fromId)] || 0;
 
-          // Chỉ tạo transaction nếu mình nợ nó NHIỀU HƠN nó nợ mình
           if (amount > reverseDebt) {
             const finalAmt = smartRound(
               amount - reverseDebt,
-              settings.roundingMode
+              settings.roundingMode,
             );
             if (finalAmt > 0) {
               transfers.push({
@@ -433,6 +587,8 @@ export const useBillApp = () => {
       isSplitDialogOpen,
       currentSplitItem,
       historyDetailBill,
+      billEqualAdjustments,
+      billErrors
     },
     computed: {
       t,
@@ -470,6 +626,8 @@ export const useBillApp = () => {
       settleAllBills,
       formatMoney,
       formatNumberOnly,
+      setBillEqualAdjustments,
+      setBillErrors
     },
   };
 };

@@ -25,7 +25,6 @@ const Button = ({ children, onClick, variant = 'primary', className = '', isDark
 
   const variants = {
     primary: "bg-[#6482AD] text-white border-[#6482AD] hover:bg-[#506b8f] hover:border-[#506b8f]",
-    // Dark mode: Neutral 800 (Dark Gray) instead of Slate
     secondary: isDark
       ? "bg-neutral-800 text-neutral-200 border-neutral-800 hover:bg-neutral-700"
       : "bg-[#E2DAD6] text-[#6482AD] border-[#E2DAD6] hover:bg-[#d4c3bd]",
@@ -54,14 +53,18 @@ const Button = ({ children, onClick, variant = 'primary', className = '', isDark
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   isDark?: boolean;
+  hasError?: boolean;
 }
 
-const Input = ({ label, isDark, ...props }: InputProps) => (
+const Input = ({ label, isDark, hasError, ...props }: InputProps) => (
   <div className="flex flex-col gap-1 w-full font-sans">
-    {label && <label className="text-xs font-bold text-[#6482AD] uppercase tracking-wider ml-1">{label}</label>}
+    {label && <label className={`text-xs font-bold uppercase tracking-wider ml-1 transition-colors ${hasError ? 'text-red-500' : 'text-[#6482AD]'}`}>{label}</label>}
     <input
-      className={`w-full border-b-2 border-transparent focus:border-[#6482AD] rounded-none px-4 py-3 transition-all outline-none placeholder:text-[#6482AD]/30 
-      ${isDark ? 'bg-neutral-900 text-white border-neutral-800 focus:bg-black' : 'bg-[#F5EDED] text-[#2C3E50]'}`}
+      className={`w-full border-b-2 rounded-none px-4 py-3 transition-all outline-none placeholder:text-[#6482AD]/30 
+      ${hasError ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-[#6482AD]'}
+      ${isDark 
+        ? (hasError ? 'bg-red-900/20 text-white' : 'bg-neutral-900 text-white focus:bg-black') 
+        : (hasError ? 'bg-red-50 text-red-900' : 'bg-[#F5EDED] text-[#2C3E50]')}`}
       {...props}
     />
   </div>
@@ -128,7 +131,6 @@ const BillSplitter = () => {
   };
 
   return (
-    // MAIN BACKGROUND: Chuyển sang bg-black
     <div className={`min-h-screen font-sans selection:bg-[#6482AD] selection:text-white pb-24 transition-colors duration-300
       ${isDark ? 'bg-black text-neutral-200' : 'bg-[#F5EDED] text-[#2C3E50]'}`}>
 
@@ -136,11 +138,10 @@ const BillSplitter = () => {
 
       <main className="max-w-md mx-auto px-4 space-y-6">
 
-        {/* TABS CONTAINER */}
         <div className={`p-1 flex shadow-sm border rounded-none overflow-x-auto
            ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/20'}`}>
           {[
-            { id: 'members', icon: User, label: t.members },
+            { id: 'members', icon: User, label: t.members, badge: state.members.length > 0 ? state.members.length : null },
             { id: 'bills', icon: Receipt, label: t.bills, badge: computed.openBillsCount > 0 ? computed.openBillsCount : null },
             { id: 'summary', icon: Check, label: t.summary },
             { id: 'history', icon: History, label: t.history },
@@ -204,7 +205,8 @@ const BillSplitter = () => {
                    ${isDark ? 'bg-neutral-800 hover:bg-neutral-700 border-neutral-700' : 'bg-[#F5EDED] hover:bg-[#E2DAD6] hover:border-[#6482AD]/20'}`}>
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 flex items-center justify-center text-[#6482AD] ${isDark ? 'bg-neutral-900 border-neutral-700' : 'bg-white border border-[#6482AD]/30'}`}>
-                        <User size={16} />
+
+                        <span className="text-sm font-bold uppercase">{m.name.charAt(0)}</span>
                       </div>
                       <span className={`font-bold ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>{m.name}</span>
                     </div>
@@ -239,16 +241,51 @@ const BillSplitter = () => {
               </h2>
 
               <div className="space-y-4">
-                <Input label={t.descLabel} placeholder={t.descPlaceholder} value={state.billDesc} onChange={(e) => actions.setBillDesc(e.target.value)} isDark={isDark} />
+              {state.billErrors.general && (
+                  <div className="text-xs font-bold text-red-500 bg-red-50 p-3 border border-red-200 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 rounded-none">
+                    <AlertTriangle size={16} /> {state.billErrors.general}
+                  </div>
+                )}
+
+                <Input 
+                  label={t.descLabel} 
+                  placeholder={t.descPlaceholder} 
+                  value={state.billDesc} 
+                  hasError={state.billErrors.desc}
+                  onChange={(e) => {
+                    actions.setBillDesc(e.target.value);
+                    if (state.billErrors.desc) actions.setBillErrors({...state.billErrors, desc: false, general: ''});
+                  }} 
+                  isDark={isDark} 
+                />
+                
                 <div className="flex gap-4">
-                  <Input label={t.amountLabel} type="number" placeholder="0" value={state.billAmount} onChange={(e) => actions.setBillAmount(e.target.value)} isDark={isDark} />
+                  <Input 
+                    label={t.amountLabel} 
+                    type="number" 
+                    placeholder="0" 
+                    value={state.billAmount} 
+                    hasError={state.billErrors.amount}
+                    onChange={(e) => {
+                      actions.setBillAmount(e.target.value);
+                      if (state.billErrors.amount) actions.setBillErrors({...state.billErrors, amount: false, general: ''});
+                    }} 
+                    isDark={isDark} 
+                  />
+                  
                   <div className="w-full flex flex-col gap-1">
-                    <label className="text-xs font-bold text-[#6482AD] uppercase tracking-wider ml-1">{t.payerLabel}</label>
+                    <label className={`text-xs font-bold uppercase tracking-wider ml-1 ${state.billErrors.payer ? 'text-red-500' : 'text-[#6482AD]'}`}>{t.payerLabel}</label>
                     <select
-                      className={`w-full rounded-none px-4 py-3 outline-none appearance-none cursor-pointer border-b-2 border-transparent focus:border-[#6482AD] font-sans
-                       ${isDark ? 'bg-neutral-800 text-white border-neutral-700' : 'bg-[#F5EDED] text-[#2C3E50]'}`}
+                      className={`w-full rounded-none px-4 py-3 outline-none appearance-none cursor-pointer border-b-2 transition-all font-sans
+                       ${state.billErrors.payer ? 'border-red-500' : 'border-transparent focus:border-[#6482AD]'}
+                       ${isDark 
+                          ? (state.billErrors.payer ? 'bg-red-900/20 text-white' : 'bg-neutral-800 text-white') 
+                          : (state.billErrors.payer ? 'bg-red-50 text-red-900' : 'bg-[#F5EDED] text-[#2C3E50]')}`}
                       value={state.billPayer}
-                      onChange={(e) => actions.setBillPayer(e.target.value)}
+                      onChange={(e) => {
+                        actions.setBillPayer(e.target.value);
+                        if (state.billErrors.payer) actions.setBillErrors({...state.billErrors, payer: false, general: ''});
+                      }}
                     >
                       <option value="">{t.selectPayer}</option>
                       {state.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -299,6 +336,70 @@ const BillSplitter = () => {
                           </button>
                         )
                       })}
+            
+                    {state.billSelectedMembers.length > 0 && (
+                      <div className={`mt-4 space-y-3 border-t pt-4 ${isDark ? 'border-neutral-700' : 'border-[#6482AD]/10'}`}>
+                        <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Thêm/Bớt tiền riêng (Tuỳ chọn)</p>
+
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {state.billSelectedMembers.map(mid => {
+                            const m = state.members.find(x => x.id === mid);
+                            if (!m) return null;
+                            const isAdjusting = state.billEqualAdjustments[mid] !== undefined;
+                            return (
+                              <button
+                                key={m.id}
+                                onClick={() => {
+                                  const newAdj = { ...state.billEqualAdjustments };
+                                  if (isAdjusting) {
+                                    delete newAdj[mid]; // Bấm lần 2 thì xoá
+                                  } else {
+                                    newAdj[mid] = '';   // Bấm lần 1 thì mở input
+                                  }
+                                  actions.setBillEqualAdjustments(newAdj);
+                                }}
+                                className={`px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wide border transition-all ${
+                                  isAdjusting
+                                    ? 'bg-amber-500 text-white border-amber-500 shadow-md'
+                                    : isDark ? 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700' : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
+                                }`}
+                              >
+                                {m.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                   
+                        {Object.keys(state.billEqualAdjustments).length > 0 && (
+                          <div className="space-y-2 mt-3 p-3 bg-amber-500/5 border border-amber-500/20">
+                            {state.billSelectedMembers.map(mid => {
+                              if (state.billEqualAdjustments[mid] === undefined) return null;
+                              const m = state.members.find(x => x.id === mid);
+                              return (
+                                <div key={m?.id} className="flex items-center gap-2 animate-in slide-in-from-top-2 fade-in duration-200">
+                                  <span className={`text-sm w-20 truncate font-medium ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>{m?.name}</span>
+                                  <input
+                                    type="text"
+                                    autoFocus
+                                    placeholder="VD: -10000 25000"
+                                    className={`flex-1 px-3 py-1.5 text-sm border-b-2 border-transparent focus:border-amber-500 outline-none transition-all rounded-none ${
+                                      isDark ? 'bg-neutral-900 text-white placeholder:text-neutral-600' : 'bg-white text-[#2C3E50] placeholder:text-gray-300'
+                                    }`}
+                                    value={state.billEqualAdjustments[mid] || ''}
+                                    onChange={(e) => actions.setBillEqualAdjustments({...state.billEqualAdjustments, [mid]: e.target.value})}
+                                  />
+                                </div>
+                              );
+                            })}
+                            <p className="text-[10px] text-gray-400 italic pt-1">
+                              *Nhập số tiền phát sinh (VD: ăn hàu 20k, ko uống nước -15k thì gõ: 20000 -15000).
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     </div>
                   </div>
                 ) : (
@@ -357,7 +458,7 @@ const BillSplitter = () => {
                   <div onClick={() => actions.editBill(bill)} className="flex-1">
                     <h4 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>{bill.description}</h4>
                     <p className="text-xs text-gray-400 mt-1">
-                      <span className={`px-2 py-0.5 mr-2 uppercase tracking-wider text-[10px] font-bold ${isDark ? 'bg-neutral-800 text-[#6482AD]' : 'bg-[#F5EDED] text-[#6482AD]'}`}>{state.members.find(m => m.id === bill.payer)?.name}</span>
+                      <span className={`px-2 py-0.5 mr-2 uppercase tracking-wider text-[10px] font-bold ${isDark ? 'bg-neutral-800 text-[#6482AD]' : 'bg-[#F5EDED] text-[#6482AD]'}`}>{bill.memberSnapshot?.[bill.payer] || state.members.find(m => m.id === bill.payer)?.name || "User đã xoá"}</span>
                       {bill.date}
                     </p>
                   </div>
@@ -496,9 +597,9 @@ const BillSplitter = () => {
                   >
                     <Check size={18} /> {t.settle}
                   </Button>
-                  <p className="text-[10px] text-gray-400 italic">
+                  {/* <p className="text-[10px] text-gray-400 italic">
                     {t.settleHint}
-                  </p>
+                  </p> */}
                 </div>
               )}
             </div>
@@ -509,7 +610,7 @@ const BillSplitter = () => {
           <div className="animate-in slide-in-from-bottom-4 duration-300 space-y-4">
             <div className={`p-6 shadow-lg border rounded-none ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-[#6482AD]/10'}`}>
               <h2 className={`text-xl font-bold mb-4 uppercase tracking-widest border-b pb-2 flex items-center gap-2 ${isDark ? 'text-white border-neutral-800' : 'text-[#2C3E50] border-gray-100'}`}>
-                <ArchiveRestore size={20} /> {t.archive}
+                {t.archive}
               </h2>
               <p className="text-xs text-gray-400 mb-4">{t.archiveDesc}</p>
 
@@ -519,10 +620,13 @@ const BillSplitter = () => {
                     <div>
                       <div className={`font-bold ${isDark ? 'text-white' : 'text-[#2C3E50]'}`}>{bill.description}</div>
                       <div className="text-[10px] uppercase">
-                        {t.paidBy} {state.members.find(m => m.id === bill.payer)?.name} • {actions.formatMoney(bill.amount)}
+                        {t.paidBy} {bill.memberSnapshot?.[bill.payer] || state.members.find(m => m.id === bill.payer)?.name || "User đã xoá"} • {actions.formatMoney(bill.amount)}
                       </div>
                     </div>
                     <div className="flex gap-2">
+
+
+
                       <Button variant="ghost" className="h-8 px-2" onClick={() => actions.setHistoryDetailBill(bill)} isDark={isDark}>
                         <Eye size={16} />
                       </Button>

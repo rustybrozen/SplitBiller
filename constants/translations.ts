@@ -67,10 +67,10 @@ export const TRANSLATIONS = {
     alertItemInfo: 'Nhập tên sản phẩm, tiền và chọn người ăn nhé!',
     alertOverAmount: 'Lố tiền! Chỉ còn dư',
     alertCopy: 'Đã copy nội dung!',
-    language: 'Ngôn ngữ (Language)',
-    theme: 'Giao diện (Theme)',
-    light: 'Sáng (Light)',
-    dark: 'Tối (Dark)',
+    language: 'Ngôn ngữ',
+    theme: 'Giao diện',
+    light: 'Sáng',
+    dark: 'Tối',
     create: 'tạo mới',
     update: 'cập nhật lại',
     bankSettings: 'Tài khoản nhận tiền',
@@ -99,6 +99,8 @@ export const TRANSLATIONS = {
     markSettled: 'Đã xong / Xóa',
     emptyDebt: 'Không có khoản nợ nào.',
     confirmSettle: 'Xác nhận đã thanh toán xong khoản này?',
+    conflictName:'Trùng tên',
+      hasUnpaidBill:'Người này đang dính bill chưa chốt. Phải thanh toán xong hoặc xoá/sửa bill mới được xóa!'
   },
   en: {
     members: 'Members',
@@ -200,6 +202,8 @@ export const TRANSLATIONS = {
     markSettled: 'Settle / Delete',
     emptyDebt: 'No records found.',
     confirmSettle: 'Mark this debt as settled?',
+     conflictName:'This name is already taken',
+     hasUnpaidBill:'This user has an unpaid bill. Please complete the payment or update/delete the bill before deleting this user'
   }
 } as const;
 

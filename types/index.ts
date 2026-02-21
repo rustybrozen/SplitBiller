@@ -21,6 +21,8 @@ export interface Bill {
   extraSplits: ExtraSplit[];
   status: 'open' | 'closed';
   batchId?: number;
+  equalAdjustments?: Record<number, number>;
+  memberSnapshot?: Record<number, string>;
 }
 
 export interface Transfer {
@@ -48,5 +50,5 @@ export interface DebtRecord {
   note: string;
   date: string;
   status: 'active' | 'settled';
+  memberNameSnapshot?: string;
 }
-
