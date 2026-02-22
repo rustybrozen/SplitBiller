@@ -5,13 +5,13 @@ import { TRANSLATIONS, Language } from '@/constants/translations';
 
 interface NewDebtState {
   amount: string;
-  memberId: string;
+  memberName: string;
   type: 'borrow' | 'lend';
   note: string;
   date: string;
 }
 
-export type DebtTab = 'members' | 'input' | 'pay' | 'receive' | 'history' | 'settings';
+export type DebtTab = 'input' | 'pay' | 'receive' | 'history' | 'settings';
 
 export const useDebt = () => {
   const [activeTab, setActiveTab] = useState<DebtTab>('input');
@@ -54,9 +54,9 @@ const [settings, setSettings] = useState<AppSettings>(() => {
   const [newMemberName, setNewMemberName] = useState('');
 
   const [debts, setDebts] = useState<DebtRecord[]>([]);
-  const [newDebt, setNewDebt] = useState<NewDebtState>({
-    amount: '', memberId: '', type: 'lend', note: '', date: new Date().toISOString().split('T')[0]
-  });
+ const [newDebt, setNewDebt] = useState<NewDebtState>({
+  amount: '', memberName: '', type: 'lend', note: '', date: new Date().toISOString().split('T')[0]
+});;
 
   const currentLang = (settings.language as Language) || 'vi';
   const t = TRANSLATIONS[currentLang];
@@ -106,27 +106,43 @@ const [settings, setSettings] = useState<AppSettings>(() => {
     }
   };
 
-  const addDebtRecord = () => {
-    if (!newDebt.amount || !newDebt.memberId) {
-        alert(t.alertFillInfo); 
-        return;
-    }
-    const member = members.find(m => m.id === parseInt(newDebt.memberId));
-    const record: DebtRecord = {
-      id: Date.now(),
-      memberId: parseInt(newDebt.memberId),
-      amount: parseFloat(newDebt.amount),
-      type: newDebt.type,
-      note: newDebt.note,
-      date: newDebt.date ? new Date(newDebt.date).toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US') : new Date().toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US'),
-      status: 'active',
-      memberNameSnapshot: member?.name || 'Unknown'
-    };
-    setDebts([record, ...debts]);
-    setNewDebt({ ...newDebt, amount: '', note: '' });
-    
-    setActiveTab(newDebt.type === 'borrow' ? 'pay' : 'receive');
+const addDebtRecord = () => {
+  if (!newDebt.amount || !newDebt.memberName.trim()) {
+      alert(t.alertFillInfo); 
+      return;
+  }
+
+  const inputNameRaw = newDebt.memberName.trim();
+  const inputNameLower = inputNameRaw.toLowerCase();
+
+
+  let targetMember = members.find(m => m.name.toLowerCase() === inputNameLower);
+  let newMembersList = members;
+
+  
+  if (!targetMember) {
+      targetMember = { id: Date.now(), name: inputNameRaw };
+      newMembersList = [...members, targetMember];
+      setMembers(newMembersList);
+  }
+
+  
+  const record: DebtRecord = {
+    id: Date.now(),
+    memberId: targetMember.id, 
+    amount: parseFloat(newDebt.amount),
+    type: newDebt.type,
+    note: newDebt.note,
+    date: newDebt.date ? new Date(newDebt.date).toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US') : new Date().toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US'),
+    status: 'active',
+    memberNameSnapshot: targetMember.name
   };
+  
+  setDebts([record, ...debts]);
+  setNewDebt({ ...newDebt, amount: '', note: '', memberName: '' }); 
+  
+  setActiveTab(newDebt.type === 'borrow' ? 'pay' : 'receive');
+};
 
   const settleDebt = (id: number) => {
     if(confirm(t.confirmSettle || "Xác nhận đã thanh toán xong khoản này?")) {
