@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "App chia bill nhanh",
 };
 
+import { AppProvider } from "@/context/AppContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,12 +28,14 @@ export default function RootLayout({
     <html lang="en">
       <head>   
         <meta name="apple-mobile-web-app-title" content="SplitBiller" />
-        </head>
+      </head>
 
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AppProvider>
+          {children}
+        </AppProvider>
       </body>
     </html>
   );

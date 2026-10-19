@@ -22,6 +22,7 @@ export interface Bill {
   status: 'open' | 'closed';
   batchId?: number;
   equalAdjustments?: Record<number, number>;
+  shares?: Record<number, number>;
   memberSnapshot?: Record<number, string>;
 }
 
@@ -39,7 +40,8 @@ export interface AppSettings {
   myId?: number;        
   bankBin?: string;      
   bankAccountNo?: string; 
-  bankAccountName?: string; 
+  bankAccountName?: string;
+  defaultApp?: 'split' | 'debt';
 }
 
 export interface DebtRecord {

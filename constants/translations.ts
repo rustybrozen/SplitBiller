@@ -48,7 +48,7 @@ export const TRANSLATIONS = {
     roundingNone: 'Tắt',
     roundingNoneDesc: 'Giữ nguyên số tiền gốc',
     roundingSmartDesc: 'Dưới 500đ làm tròn xuống, từ 500đ làm tròn lên (VD: 20.499đ ➔ 20.000đ)',
-    version: 'Phiên bản 3.2 • SplitBiller',
+    version: 'Phiên bản 3.3 • SplitBiller',
     dialogSplitTitle: 'Chi tiết món riêng',
     remainingSpace: 'Ngân sách còn lại:',
     itemName: 'Tên mục (Món ăn, thuế...)',
@@ -102,7 +102,16 @@ export const TRANSLATIONS = {
     conflictName: 'Tên này đã tồn tại trong nhóm.',
     hasUnpaidBill: 'Thành viên này đang có hóa đơn chưa hoàn tất. Vui lòng chốt sổ hoặc chỉnh sửa hóa đơn trước khi xóa!',
     debtText: "Sổ Nợ",
-    splitText: "Chia Bill"
+    splitText: "Chia Bill",
+    sharesSplit: "Chia theo phần",
+    shareUnit: "phần",
+    alertSelectMembers: "Vui lòng chọn ít nhất 1 thành viên tham gia!",
+    alertAmountPositive: "Số tiền phải lớn hơn 0!",
+    alertAdjustmentFormat: "Lỗi! Nhập thêm/bớt tiền bị sai định dạng.",
+    defaultAppSetting: "Trang mặc định khi mở app",
+    defaultAppSplit: "Chia Bill Nhóm",
+    defaultAppDebt: "Sổ Nợ Cá Nhân",
+    defaultAppDesc: "Tự động điều hướng đến trang này khi mở ứng dụng."
   },
   en: {
     members: 'Members',
@@ -153,7 +162,7 @@ export const TRANSLATIONS = {
     roundingNone: 'Off',
     roundingNoneDesc: 'Keep exact decimal amounts',
     roundingSmartDesc: 'Smart rounding: Below 500đ rounds down, 500đ+ rounds up (e.g., 20,499đ ➔ 20,000đ)',
-    version: 'Version 3.2 • SplitBiller',
+    version: 'Version 3.3 • SplitBiller',
     dialogSplitTitle: 'Item Details',
     remainingSpace: 'Remaining budget:',
     itemName: 'Item Name (Food, Tax, etc.)',
@@ -207,7 +216,16 @@ export const TRANSLATIONS = {
     conflictName: 'This member name already exists.',
     hasUnpaidBill: 'This member is part of an unsettled bill. Please settle or modify the bill before removing them!',
     debtText: "Debt Book",
-    splitText: "Split Bill"
+    splitText: "Split Bill",
+    sharesSplit: "Split by shares",
+    shareUnit: "shares",
+    alertSelectMembers: "Please select at least 1 member!",
+    alertAmountPositive: "Bill amount must be greater than 0!",
+    alertAdjustmentFormat: "Error! Invalid format for adjustment.",
+    defaultAppSetting: "Default Start Page",
+    defaultAppSplit: "Group Split",
+    defaultAppDebt: "Personal Ledger",
+    defaultAppDesc: "Automatically navigate to this section on startup."
   }
 } as const;
 

@@ -24,7 +24,15 @@ export const HeaderSwitch = ({ isDark, splitText, debtText }: { isDark: boolean,
           </h1>
         </div>
         
-        <Link href={targetLink} className="text-right group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95">
+        <Link
+          href={targetLink}
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("visited_split", "true");
+            }
+          }}
+          className="text-right group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95"
+        >
           <div className="flex items-center justify-end gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider group-hover:text-[#6482AD]">
             {targetApp} <ArrowLeftRight size={12} />
           </div>
